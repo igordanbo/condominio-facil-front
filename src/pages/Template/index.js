@@ -1,15 +1,15 @@
 import { Outlet } from "react-router-dom"
-import Menu from "../../components/Menu"
+import MainContainer from "../../components/MainContainer"
 
 
 export default function Template() {
 
     return (
-     <> 
-        <Menu />
-        <Outlet />
-    </>
-       
+        <div>
+            <MainContainer>
+                <Outlet />
+            </MainContainer>
+        </div>
     )
 
 }

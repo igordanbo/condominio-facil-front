@@ -1,24 +1,42 @@
 import { useEffect, useState } from "react";
+import Table from "../../components/Table";
+import TableHeader from "../../components/Table/TableHeader";
+import TableItem from "../../components/Table/TableItem";
+import TableFooter from "../../components/Table/TableFooter";
 
 export default function Condominios() {
     
     // estado para guardar o que vier da API
-    const [condominios, setCondominios] = useState([]);
+    const [condominios, setCondominios] = useState([]); //[] esperando lista
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null); // para capturar falhas
+    const [error, setError] = useState(null); 
 
+    // requisição feita assim que o componente montar
     useEffect(() => {
-    // 2. faça a requisição assim que o componente montar
-    // (o array vazio [] garante que roda só 1 vez)
-
         const fetchData = async () => {
+            setLoading(true);
+            setError(null); // limpa erro anterior
+
             try {
                 const response = await fetch("http://127.0.0.1:8000/api/condominios");
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                const data = await response.json(); // converte JSON → objeto JS
-                setCondominios(data.data); // salva no estado
+
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // Verifica se data.data existe, evita erro silencioso
+                if (data && Array.isArray(data.data)) {
+                    setCondominios(data.data);
+                } else {
+                    setCondominios([]);
+                    setError("Formato de resposta inesperado da API");
+                }
+
             } catch (err) {
-                setError(err.message);
+                setError(err.message || "Erro desconhecido");
+                setCondominios([]);
             } finally {
                 setLoading(false);
             }
@@ -31,9 +49,30 @@ export default function Condominios() {
     if (error) return <p>Erro: {error}</p>;
 
     return (
-        console.log(condominios),
-        (
+        <>
+        <Table>
+            <TableHeader
+                col1="Condomínio"
+                col2="Telefone e Email"
+                col3="Endereço"
+                col4="Síndico"
+            />
+            {condominios.map((condominio) => (
+
+                <TableItem
+                    key={condominio.id}
+                    id={condominio.id}
+                    status={condominio.status}
+                    col1={condominio.nome}
+                    col2={condominio.telefone +' '+ condominio.email}
+                    col3={condominio.endereco}
+                    col4={condominio.sindico.nome}
+                />
+            ))}
+            <TableFooter/>
+        </Table>
         <ul>
+            
             {condominios.map((condominio) => (
             <li key={condominio.id}>
                 <strong>{condominio.id}.</strong> {condominio.nome}
@@ -76,6 +115,7 @@ export default function Condominios() {
             </li>
             ))}
         </ul>
+        </>
         )
-  );
+  
 }

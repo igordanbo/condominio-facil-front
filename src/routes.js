@@ -3,22 +3,28 @@ import Template from './pages/Template';
 import Dashboard from './pages/Dashboard';
 import Page404 from './pages/Page404';
 import Condominios from './pages/Condominios'; 
+import Condominio from './pages/Condominio';
+import EditarCondominio from './pages/Condominio/Editar';
+import Menu from './components/Menu';
+import Header from './components/Header';
 
 function App() {
   return (
     <>
       <BrowserRouter>
+        <Menu />
+        <Header />
         <Routes>
           <Route path="/" element={<Template />}>
             <Route index element={<Dashboard />} />
             <Route path="condominios" element={<Condominios />} />
+            <Route path="condominio/:id" element={<Condominio />} />
+            <Route path="condominio/editar/:id" element={<EditarCondominio />} />
           </Route>
           <Route path="*" element={<Page404 />} />
         </Routes>
       </BrowserRouter>
     </>
-   
-  
   );
 }
 
