@@ -20,6 +20,8 @@ function App() {
             <Route path="condominios" element={<Condominios />} />
             <Route path="condominio/:id" element={<Condominio />} />
             <Route path="condominio/editar/:id" element={<EditarCondominio />} />
+            <Route path="manutencoes" element={<div>Manutenções</div>} />
+            <Route path="usuarios" element={<div>Usuários</div>} />
           </Route>
           <Route path="*" element={<Page404 />} />
         </Routes>
