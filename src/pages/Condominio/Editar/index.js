@@ -1,24 +1,27 @@
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import InputText from '../../../components/InputText';
 import InputCustomMask from '../../../components/InputCustomMask';
 import InputEmail from '../../../components/InputEmail';
-import SelectBool from '../../../components/SelectBool';
+import SelectStatus from '../../../components/SelectStatus';
 import SelectCustom from '../../../components/SelectCustom';
 import './styles.css';
 import Erro from '../../../components/Mensagem/Erro';
+
 
 
 export default function EditarCondominio() {
 
     //pega o id do condominio da URL
     const { id } = useParams();
+    const navigate = useNavigate();
 
     const [condominio, setCondominio] = useState(null); 
     const [usuarios, setUsuarios] = useState(null); 
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [erroValidacao, setErroValidacao] = useState('');
+    const [error, setError] = useState(null); // erros técnicos
+    const [validationErrors, setValidationErrors] = useState({}); // erros de campos
+
   
     useEffect(() => {
           const fetchCondominios = async () => {
@@ -63,7 +66,7 @@ export default function EditarCondominio() {
                 const data = await response.json();
                 setUsuarios(data);
             } catch (error) {
-                setErroValidacao('Erro ao atualizar o condomínio: ' + error.message);
+                setError('Erro ao atualizar o condomínio: ' + error.message);
             } finally {
                 setLoading(false);
             }
@@ -84,51 +87,64 @@ export default function EditarCondominio() {
     };
 
 
-    // Função que atualiza o banco com os novos
-    const  handleSubmit = async (evento) => {
+    // Função que atualiza o banco com os novos dados
+    const handleSubmit = async (evento) => {
         evento.preventDefault();
-
-        if (!condominio.nome || condominio.nome.length < 3) {
-            setErroValidacao('Nome do condomínio é obrigatório e deve ter pelo menos 3 caracteres.');
-            return;
-          }
-        
-          setErroValidacao('');
-
+    
+        setError(null);
+        setValidationErrors({});
+    
         try {
             const response = await fetch(`http://127.0.0.1:8000/api/condominios/${id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Accept': 'application/json', // <- ESSENCIAL para forçar resposta JSON
                 },
-                body: JSON.stringify(condominio), // Envia os dados do condomínio atualizados
+                body: JSON.stringify(condominio),
             });
 
+            console.log(`Atualizando condomínio com ID ${id} e dados:`, condominio)
+    
             if (!response.ok) {
+                if (response.status === 422) {
+                    try {
+                        const data = await response.json(); // pode falhar se não for JSON
+                        setValidationErrors(data.errors || {});
+                    } catch (e) {
+                        setError("Erro de validação, mas não foi possível interpretar a resposta.");
+                    }
+                    return;
+                }
+    
                 throw new Error(`Erro HTTP ${response.status}`);
             }
 
             const newCondominio = await response.json();
-
-            setCondominio(newCondominio); // Atualiza o estado com os dados do condomínio atualizado
-
+            console.log('Resposta API após update:', newCondominio);
+            setCondominio(newCondominio);
+            
+            setError(null);
             alert('Condomínio atualizado com sucesso!');
-
-        } catch (error) {
-            setError(error.message || "Erro desconhecido ao atualizar o condomínio");
-            alert('Erro ao atualizar.');
-            return;
+            navigate(-1);
+        } catch (err) {
+            if (err.name === 'TypeError') {
+                setError("Não foi possível conectar ao servidor. Verifique sua conexão ou tente mais tarde.");
+            } else {
+                setError(err.message || "Erro desconhecido ao atualizar");
+            }
         }
-    }
+    };
 
     if (loading) return <p>Carregando...</p>;
-    if (error) return <p>Erro: {error}</p>;
+    if (loading) return <p>Carregando...</p>;
     if (!condominio) return <p>Nenhum dado encontrado.</p>;
     if (!usuarios) return <p>Nenhum usuário encontrado.</p>;
   
     return (
         <div>
-           {erroValidacao && <Erro mensagem={erroValidacao} />}
+            {error && <p style={{ color: 'red' }}>Erro: {error}</p>}
+
             <form onSubmit={handleSubmit}>
                 <InputText 
                     label="Nome do condomínio"
@@ -137,6 +153,10 @@ export default function EditarCondominio() {
                     value={condominio.nome}
                     onChange={handleChange}
                 />
+                {validationErrors.nome && <Erro 
+                    mensagem={validationErrors.nome[0]} 
+                    onClose={() => setValidationErrors((prev) => ({ ...prev, nome: null }))}    
+                />}
 
                 <InputText 
                     label="Endereço do condomínio"
@@ -145,6 +165,10 @@ export default function EditarCondominio() {
                     value={condominio.endereco}
                     onChange={handleChange}
                 />
+                {validationErrors.endereco && <Erro 
+                    mensagem={validationErrors.endereco[0]}
+                    onClose={() => setValidationErrors((prev) => ({ ...prev, endereco: null }))}     
+                />}
                 
                 <InputCustomMask 
                     label="Telefone de contato"
@@ -154,6 +178,10 @@ export default function EditarCondominio() {
                     value={condominio.telefone}
                     onChange={handleChange}
                 />
+                {validationErrors.telefone && <Erro 
+                    mensagem={validationErrors.telefone[0]} 
+                    onClose={() => setValidationErrors((prev) => ({ ...prev, telefone: null }))}
+                />}
 
                 <InputEmail
                     label="Email de contato"
@@ -161,21 +189,20 @@ export default function EditarCondominio() {
                     value={condominio.email}
                     onChange={handleChange}
                 />
+                {validationErrors.email && <Erro 
+                    mensagem={validationErrors.email[0]} 
+                    onClose={() => setValidationErrors((prev) => ({ ...prev, email: null }))}
+                />}
 
-                <SelectBool 
-                    label="Status"
 
-                    value1="ativo"
-                    option1="Ativo"
-                    cor1="green"
-                    
-                    value2="inativo"
-                    option2="Inativo"
-                    cor2="red"
-                    
+
+                <SelectStatus
+                    label="Status do condomínio"
                     name="status"
+                    value={condominio.status}
                     onChange={handleChange}
                 />
+
 
                 <InputCustomMask 
                     label="CNPJ"
@@ -185,6 +212,10 @@ export default function EditarCondominio() {
                     value={condominio.cnpj}
                     onChange={handleChange}
                 />
+                {validationErrors.cnpj && <Erro 
+                    mensagem={validationErrors.cnpj[0]} 
+                    onClose={() => setValidationErrors((prev) => ({ ...prev, cnpj: null }))}
+                />}
 
                 <InputText 
                     label="Cidade do condomínio"
@@ -193,6 +224,10 @@ export default function EditarCondominio() {
                     value={condominio.cidade}
                     onChange={handleChange}
                 />
+                {validationErrors.cidade && <Erro
+                    mensagem={validationErrors.cidade[0]} 
+                    onClose={() => setValidationErrors((prev) => ({ ...prev, cidade: null }))}
+                />}
                 
                 <InputCustomMask 
                     label="Uf do condomínio"
@@ -202,6 +237,10 @@ export default function EditarCondominio() {
                     value={condominio.uf}
                     onChange={handleChange}
                 />
+                {validationErrors.uf && <Erro
+                    mensagem={validationErrors.uf[0]} 
+                    onClose={() => setValidationErrors((prev) => ({ ...prev, uf: null }))}
+                />}
 
                 {/*
                 <label>Responsável pelo condomínio</label>
@@ -221,8 +260,12 @@ export default function EditarCondominio() {
                     value={condominio.responsavel_id}
                     onChange={handleChange}
                 />
+                {validationErrors.responsavel_id && <Erro 
+                    mensagem={validationErrors.responsavel_id[0]}
+                    onClose={() => setValidationErrors((prev) => ({ ...prev, responsavel_id: null }))}    
+                />}
 
-                <button type="submit" className="btn btn-primary">Atualizar</button>
+                <button type="submit">Atualizar</button>
             </form>               
           </div>
       );

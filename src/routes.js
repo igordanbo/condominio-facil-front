@@ -7,6 +7,9 @@ import Condominio from './pages/Condominio';
 import EditarCondominio from './pages/Condominio/Editar';
 import Menu from './components/Menu';
 import Header from './components/Header';
+import Usuarios from "./pages/Usuarios";
+import Usuario from "./pages/Usuario"
+import EditarUsuario from "./pages/Usuario/Editar";
 
 function App() {
   return (
@@ -21,7 +24,9 @@ function App() {
             <Route path="condominio/:id" element={<Condominio />} />
             <Route path="condominio/editar/:id" element={<EditarCondominio />} />
             <Route path="manutencoes" element={<div>Manutenções</div>} />
-            <Route path="usuarios" element={<div>Usuários</div>} />
+            <Route path="usuarios" element={<Usuarios/>} />
+            <Route path="usuario/:id" element={<Usuario/>} />
+            <Route path="usuario/editar/:id" element={<EditarUsuario/>}/>
           </Route>
           <Route path="*" element={<Page404 />} />
         </Routes>

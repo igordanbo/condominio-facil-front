@@ -1,19 +1,16 @@
 import './styles.css';
 
-export default function SelectBool({ label, value, name, onChange }) {
-
-
+export default function SelectStatus({ label = 'Status', value, name = 'status', onChange }) {
     return (
-        <div className="campo">
-            <label htmlFor="status">{label}</label>
+        <div className="select-status-wrapper">
+            <label htmlFor={name}>{label}</label>
             <select
+                id={name}
                 name={name}
-                id="status"
                 value={value}
                 onChange={onChange}
-                className="select-status"
+                className={`select-status ${value === 'ativo' ? 'ativo' : 'inativo'}`}
             >
-                <option value="">Selecione o status</option>
                 <option value="ativo">Ativo</option>
                 <option value="inativo">Inativo</option>
             </select>

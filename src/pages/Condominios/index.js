@@ -3,6 +3,9 @@ import Table from "../../components/Table";
 import TableHeader from "../../components/Table/TableHeader";
 import TableItem from "../../components/Table/TableItem";
 import TableFooter from "../../components/Table/TableFooter";
+import Erro from "../../components/Mensagem/Erro";
+import ModalDanger from "../../components/Modal/ModalDanger";
+import { useNavigate } from "react-router-dom";
 
 export default function Condominios() {
     
@@ -10,6 +13,9 @@ export default function Condominios() {
     const [condominios, setCondominios] = useState([]); //[] esperando lista
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null); 
+    const [mostrarModal, setAbrirModal] = useState(true);
+    const [condominioSelecionado, setCondominioSelecionado] = useState(null);
+    let navigate = useNavigate();
 
     // requisição feita assim que o componente montar
     useEffect(() => {
@@ -46,7 +52,7 @@ export default function Condominios() {
     }, []);
 
     if (loading) return <p>Carregando…</p>;
-    if (error) return <p>Erro: {error}</p>;
+    if (error) return <Erro mensagem={error} onClose={null} />;;
 
     return (
         <>
@@ -67,8 +73,25 @@ export default function Condominios() {
                     col2={condominio.telefone +' '+ condominio.email}
                     col3={condominio.endereco}
                     col4={condominio.sindico.nome}
-                />
+                    onClickEdit={ () => {
+                        setCondominioSelecionado(condominio)
+                        setAbrirModal(true)
+                    }}
+                />                
             ))}
+
+            {mostrarModal && condominioSelecionado && (<ModalDanger 
+                title='Editar condomínio'
+                description={`Você solicitou editar os dados do seguinte condomínio: ${condominioSelecionado.nome}. Essa alteração pode não ser desfeita.`}
+                onConfirm={ () => {
+                    navigate(`/condominio/editar/${condominioSelecionado.id}`)
+                    setAbrirModal(false)
+                }}
+                onCancel={ () => {
+                    setAbrirModal(false)
+                }}
+            />)}   
+
             <TableFooter/>
         </Table>
         <ul>
