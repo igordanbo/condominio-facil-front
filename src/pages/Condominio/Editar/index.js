@@ -7,7 +7,9 @@ import SelectStatus from '../../../components/SelectStatus';
 import SelectCustom from '../../../components/SelectCustom';
 import './styles.css';
 import Erro from '../../../components/Mensagem/Erro';
-
+import Loading from '../../../components/Loading';
+import ButtonPrimary from '../../../components/Btn/BtnPrimary'
+import ButtonSecundary from '../../../components/Btn/BtnSecundary'
 
 
 export default function EditarCondominio() {
@@ -55,6 +57,7 @@ export default function EditarCondominio() {
 
             setLoading(true);
             setError(null); // limpa erro anterior antes da nova requisição
+            const startTime = Date.now();
 
             try {
                 const response = await fetch(`http://127.0.0.1:8000/api/usuarios`);
@@ -68,7 +71,15 @@ export default function EditarCondominio() {
             } catch (error) {
                 setError('Erro ao atualizar o condomínio: ' + error.message);
             } finally {
-                setLoading(false);
+                const elapsed = Date.now() - startTime;
+                const delay = 2800; // 2.1 segundos
+                const remaining = delay - elapsed;
+
+                if (remaining > 0) {
+                    setTimeout(() => setLoading(false), remaining);
+                } else {
+                    setLoading(false);
+                }
             }
         };
 
@@ -136,20 +147,32 @@ export default function EditarCondominio() {
         }
     };
 
-    if (loading) return <p>Carregando...</p>;
-    if (loading) return <p>Carregando...</p>;
-    if (!condominio) return <p>Nenhum dado encontrado.</p>;
-    if (!usuarios) return <p>Nenhum usuário encontrado.</p>;
+    if (!condominio) return console.log('Nenhum condominio encontrado');
+    if (!usuarios) return console.log('Nenhum condominio encontrado');
   
     return (
         <div>
+            {!condominio && <p>Nenhum dado encontrado.</p>}
+            {!usuarios && <p>Nenhum dado encontrado.</p>}
+            {loading && <Loading />}
             {error && <p style={{ color: 'red' }}>Erro: {error}</p>}
+
+            <ButtonSecundary
+                onClick={() => {
+                    navigate(-1)
+                }}   
+            >
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#344054"><path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z"/></svg>
+            </ButtonSecundary>
+
+            <h2>Editar Condomínio</h2>
 
             <form onSubmit={handleSubmit}>
                 <InputText 
                     label="Nome do condomínio"
                     type="text"
                     name="nome"
+                    placeholder="Nome do condomínio..."
                     value={condominio.nome}
                     onChange={handleChange}
                 />
@@ -162,6 +185,7 @@ export default function EditarCondominio() {
                     label="Endereço do condomínio"
                     type="text"
                     name="endereco"
+                    placeholder="Endereço do condomínio..."
                     value={condominio.endereco}
                     onChange={handleChange}
                 />
@@ -173,6 +197,7 @@ export default function EditarCondominio() {
                 <InputCustomMask 
                     label="Telefone de contato"
                     mask="(99) 9 9999-9999"
+                    placeholder="(99) 9 9999-9999"
                     type="text"
                     name="telefone"
                     value={condominio.telefone}
@@ -186,6 +211,7 @@ export default function EditarCondominio() {
                 <InputEmail
                     label="Email de contato"
                     name="email"
+                    placeholder="condominio@email.com"
                     value={condominio.email}
                     onChange={handleChange}
                 />
@@ -207,6 +233,7 @@ export default function EditarCondominio() {
                 <InputCustomMask 
                     label="CNPJ"
                     mask="99.999.999/9999-99"
+                    placeholder="99.999.999/9999-99"
                     type="text"
                     name="cnpj"
                     value={condominio.cnpj}
@@ -221,6 +248,7 @@ export default function EditarCondominio() {
                     label="Cidade do condomínio"
                     type="text"
                     name="cidade"
+                    placeholder="Cidade do condomínio"
                     value={condominio.cidade}
                     onChange={handleChange}
                 />
@@ -233,6 +261,7 @@ export default function EditarCondominio() {
                     label="Uf do condomínio"
                     mask="aa"
                     type="text"
+                    placeholder="UF"
                     name="uf"
                     value={condominio.uf}
                     onChange={handleChange}
@@ -253,10 +282,12 @@ export default function EditarCondominio() {
                 </select>
                 */}
 
+                {console.log(usuarios)}
+
                 <SelectCustom
                     label="Responsável pelo condomínio"
                     name="responsavel_id"
-                    options={usuarios}
+                    options={usuarios.data}
                     value={condominio.responsavel_id}
                     onChange={handleChange}
                 />
@@ -265,7 +296,11 @@ export default function EditarCondominio() {
                     onClose={() => setValidationErrors((prev) => ({ ...prev, responsavel_id: null }))}    
                 />}
 
-                <button type="submit">Atualizar</button>
+                <ButtonPrimary 
+                    type="submit"
+                >
+                    Salvar
+                </ButtonPrimary>
             </form>               
           </div>
       );

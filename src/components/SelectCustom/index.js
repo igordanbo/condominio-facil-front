@@ -1,7 +1,9 @@
-import React from 'react';
+import './styles.css'
 
 export default function SelectCustom({
     label,
+    children,
+    adicionalClass,
     options = [],
     value,
     name,
@@ -11,9 +13,10 @@ export default function SelectCustom({
     placeholder = 'Selecione uma opção...'
 }) {
     return (
-        <div>
+        <div className='container-select-custom'>
             <label>{label}</label>
-            <select name={name} value={value} onChange={onChange}>
+            <select name={name} value={value} onChange={onChange} className={`${adicionalClass} select-custom`}>
+                {children}
                 <option value="">{placeholder}</option>
                 {options.map((option) => (
                     <option key={option[valueKey]} value={option[valueKey]}>

@@ -2,10 +2,18 @@ import { useEffect, useState } from "react";
 import Table from "../../components/Table";
 import TableHeader from "../../components/Table/TableHeader";
 import TableItem from "../../components/Table/TableItem";
+import TableItemEmpty from "../../components/Table/TableItemEmpty"
 import TableFooter from "../../components/Table/TableFooter";
 import Erro from "../../components/Mensagem/Erro";
-import ModalDanger from "../../components/Modal/ModalDanger";
+import Modal from "../../components/Modal";
+import Filtros from "../../components/Filtros";
+import Loading from "../../components/Loading"
+import SelectCustom from "../../components/SelectCustom";
+import InputSearch from "../../components/InputSearch";
+import BtnPrimary from "../../components/Btn/BtnPrimary"
+import BtnSecundary from "../../components/Btn/BtnSecundary";
 import { useNavigate } from "react-router-dom";
+import './styles.css';
 
 export default function Condominios() {
     
@@ -13,24 +21,42 @@ export default function Condominios() {
     const [condominios, setCondominios] = useState([]); //[] esperando lista
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null); 
-    const [mostrarModal, setAbrirModal] = useState(true);
+    const [mostrarModalDelete, setAbrirModalDelete] = useState(true);
     const [condominioSelecionado, setCondominioSelecionado] = useState(null);
+    const [totalPages, setTotalPages] = useState(null)
+    const [page, setPage] = useState(1);
+    const [nome, setNome] = useState('');
+    const [debouncedNome, setDebouncedNome] = useState(nome);
+    const [status, setStatus] = useState('');
     let navigate = useNavigate();
 
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedNome(nome);
+        }, 700);
+
+        return () => {
+            clearTimeout(handler); 
+        };
+    }, [nome]);
+
+ 
     // requisição feita assim que o componente montar
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             setError(null); // limpa erro anterior
+            const startTime = Date.now();
 
             try {
-                const response = await fetch("http://127.0.0.1:8000/api/condominios");
+                const response = await fetch(`http://127.0.0.1:8000/api/condominios/?page=${page}&status=${status}&nome=${debouncedNome}`);
 
                 if (!response.ok) {
                     throw new Error(`Erro HTTP ${response.status}`);
                 }
 
                 const data = await response.json();
+                setTotalPages(data.last_page); 
 
                 // Verifica se data.data existe, evita erro silencioso
                 if (data && Array.isArray(data.data)) {
@@ -43,19 +69,80 @@ export default function Condominios() {
             } catch (err) {
                 setError(err.message || "Erro desconhecido");
                 setCondominios([]);
-            } finally {
-                setLoading(false);
-            }
+            }  finally {
+                const elapsed = Date.now() - startTime;
+                const delay = 2800; // 2.1 segundos
+                const remaining = delay - elapsed;
+
+                if (remaining > 0) {
+                    setTimeout(() => setLoading(false), remaining);
+                } else {
+                    setLoading(false);
+                }
+        }
         };
 
         fetchData();
-    }, []);
-
-    if (loading) return <p>Carregando…</p>;
-    if (error) return <Erro mensagem={error} onClose={null} />;;
+    }, [page, status, debouncedNome]);
 
     return (
         <>
+        <div className="navTools">
+            <BtnSecundary
+                onClick={ () => {
+                    navigate('/')
+                }}
+            >
+                <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#344054"><path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z"/></svg>
+            </BtnSecundary>
+            <BtnPrimary
+                onClick={ () => {
+                    navigate('/condominio/cadastrar')
+                }}
+            >
+                Cadastrar
+            </BtnPrimary>
+        </div>
+
+        {error && <Erro mensagem={error} onClose={null} />}
+        {loading && <Loading />}
+
+        <h2>Listagem de Condomínios</h2>
+        <Filtros>
+            <SelectCustom
+                label='Filtre por status'
+                value={status} 
+                onChange={(event) => {
+                setStatus(event.target.value)
+            }}>
+                <option value=''>Todos</option>
+                <option value="ativo">Ativo</option>
+                <option value="inativo">Inativo</option>
+            </SelectCustom>
+
+            <div className="info-status-div">
+                <div>
+                     <div className="ativo"></div>
+                     Ativo
+                </div>
+                <div>
+                     <div className="inativo"></div>
+                     Inativo
+                </div>
+            </div>
+
+            <InputSearch
+                label='Pesquise por condomínios'
+                value={nome} 
+                placeholder='Buscar condomínio...' 
+                onChange={ (event) => {
+                setNome(event.target.value)
+            }}>
+            </InputSearch>
+            
+            
+        </Filtros>
+        
         <Table>
             <TableHeader
                 col1="Condomínio"
@@ -63,8 +150,7 @@ export default function Condominios() {
                 col3="Endereço"
                 col4="Síndico"
             />
-            {condominios.map((condominio) => (
-
+            {condominios.length > 0 ? (condominios.map((condominio) => (
                 <TableItem
                     key={condominio.id}
                     id={condominio.id}
@@ -73,71 +159,40 @@ export default function Condominios() {
                     col2={condominio.telefone +' '+ condominio.email}
                     col3={condominio.endereco}
                     col4={condominio.sindico.nome}
+                    link_view={`/condominio/${condominio.id}`}
+                    onClickView={ () => {
+                        navigate(`/condominio/${condominio.id}`)
+                    }}
                     onClickEdit={ () => {
+                        navigate(`/condominio/editar/${condominio.id}`)
+                    }}
+                    onClickDelete={ () => {
                         setCondominioSelecionado(condominio)
-                        setAbrirModal(true)
+                        setAbrirModalDelete(true)
                     }}
                 />                
-            ))}
+            ))) : <TableItemEmpty>Ops... Não encontramos nada aqui.</TableItemEmpty>
+           } 
 
-            {mostrarModal && condominioSelecionado && (<ModalDanger 
-                title='Editar condomínio'
-                description={`Você solicitou editar os dados do seguinte condomínio: ${condominioSelecionado.nome}. Essa alteração pode não ser desfeita.`}
+            {mostrarModalDelete && condominioSelecionado && (<Modal 
+                type='danger'
+                title='Excluir condomínio'
+                description={`Você solicitou excluir o seguinte condomínio: ${condominioSelecionado.nome}. Essa alteração não pode ser desfeita. Você tem certeza?`}
                 onConfirm={ () => {
                     navigate(`/condominio/editar/${condominioSelecionado.id}`)
-                    setAbrirModal(false)
+                    setAbrirModalDelete(false)
                 }}
                 onCancel={ () => {
-                    setAbrirModal(false)
+                    setAbrirModalDelete(false)
                 }}
             />)}   
 
-            <TableFooter/>
+            <TableFooter
+                totalPages={totalPages}
+                atualPage={page}
+                onPageChange={(newPage) => setPage(newPage)}
+            />
         </Table>
-        <ul>
-            
-            {condominios.map((condominio) => (
-            <li key={condominio.id}>
-                <strong>{condominio.id}.</strong> {condominio.nome}
-                <ul>
-                <li>Sindico: {condominio.sindico.nome}</li>
-                <li>Endereço: {condominio.endereco}</li>
-                <li>Telefone: {condominio.telefone}</li>
-                <li>Email: {condominio.email}</li>
-                <li>
-                    Data de Criação:{" "}
-                    {new Date(condominio.created_at).toLocaleDateString()}
-                </li>
-                <li>
-                    Data de Atualização:{" "}
-                    {new Date(condominio.updated_at).toLocaleDateString()}
-                </li>
-
-                <ul>
-                    <li>Blocos:</li>
-                    <ul>
-                    {condominio.blocos.map((bloco) => (
-                        <li key={bloco.id}>
-                        <strong>{bloco.id}.</strong> {bloco.nome}
-                        <ul>
-                            <li>Andares: {bloco.andares}</li>
-                            <li>
-                            Data de Criação:{" "}
-                            {new Date(bloco.created_at).toLocaleDateString()}
-                            </li>
-                            <li>
-                            Data de Atualização:{" "}
-                            {new Date(bloco.updated_at).toLocaleDateString()}
-                            </li>
-                        </ul>
-                        </li>
-                    ))}
-                    </ul>
-                </ul>
-                </ul>
-            </li>
-            ))}
-        </ul>
         </>
         )
   

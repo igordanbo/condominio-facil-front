@@ -6,8 +6,6 @@ export default function Erro({ mensagem, onClose }) {
         return null; 
     }
 
-
-
     return (
         <div className="error">
             <div className="error__icon">

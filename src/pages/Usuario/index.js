@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import ModalDanger from "../../components/Modal/ModalDanger";
+import Modal from "../../components/Modal";
 
 
 export default function Usuario () {
@@ -52,7 +52,9 @@ export default function Usuario () {
                 Editar
             </button>
 
-            {modalAberto && <ModalDanger
+            {modalAberto && <Modal
+                corPrimaria='#ff7a00'
+                corSecundaria='#ffe6cf'
                 title="Editar usuário"
                 description={`Tem certeza que deseja editar os dados do usuário ${usuario.nome}? Essa alteração pode não ser desfeita.`}
                 onConfirm={ () => {

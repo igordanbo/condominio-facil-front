@@ -7,8 +7,8 @@
     height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    padding: 24px 12px;
+    gap: 32px;
+    padding: 12px 12px 24px 12px;
 }
 
 .asside-menu-bar::after {
@@ -23,14 +23,13 @@
   }
 
 .logo{
-    width: 150px;
-    height: 60px;
-    margin-bottom: 12px;
+    width: 80%;
     background-color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     object-fit: contain;
+    margin: 0 0 0 15px;
 }
 
 .menu-item{
@@ -43,6 +42,7 @@
     border-radius: 8px;
     font-size: 14px;
     padding: 8px;
+    margin: 0 0 8px 0;
 }
 
 .menu-item.active,

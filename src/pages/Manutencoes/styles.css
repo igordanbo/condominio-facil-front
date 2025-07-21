@@ -1,0 +1,13 @@
+.col-status {
+    padding: 5px;
+    border-radius: 10px;
+    text-transform: capitalize;
+}
+
+.col-status-concluido{
+    background-color: #beeec6;
+}
+
+.col-status-agendado{
+    background-color: #eee6be;
+}

@@ -20,6 +20,10 @@
     overflow: hidden;
 }
 
+.sm{
+    height: 50px !important;
+}
+
 .table-item:hover{
     background: #F9FAFB;
 }
@@ -115,11 +119,16 @@
     border: solid 1px #c2c2c2;
 }
 
-.active{
+.ativo,
+.concluido{
     background-color: #beeec6;
 }
 
-.inative{
+.agendado{
+    background-color: #eee6be;
+}
+
+.inativo{
     background-color: #eebebe;
 }
 
@@ -133,6 +142,11 @@
     gap: 5px;
     background-color: #F9FAFB;
 }
+
+.sm .table-item-action{
+    flex-direction: row;
+    height: 100%;
+} 
 
 .button-action{
     background: none;
