@@ -27,4 +27,21 @@
     width: 24px;
     height: 24px;
     fill: #667085;
+    cursor: pointer
+}
+
+.table-header-item svg:hover{
+    opacity: .2;
+}
+
+.table-header-item .false{
+    display: none;
+}
+
+.table-header-item .active{
+    transform: rotate(180deg);
+}
+
+.table-header-item .desactive{
+    transform: rotate(0deg);
 }

@@ -11,3 +11,24 @@
 .col-status-agendado{
     background-color: #eee6be;
 }
+
+.info-concluido {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background-color: #beeec6;
+}
+
+.info-agendado {
+    width: 20px;
+    height: 20px;
+    border-radius: 5px;
+    background-color: #eee6be;
+}
+
+.input-date{
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

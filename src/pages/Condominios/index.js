@@ -17,8 +17,7 @@ import './styles.css';
 
 export default function Condominios() {
     
-    // estado para guardar o que vier da API
-    const [condominios, setCondominios] = useState([]); //[] esperando lista
+    const [condominios, setCondominios] = useState([]); 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null); 
     const [mostrarModalDelete, setAbrirModalDelete] = useState(true);
@@ -28,9 +27,12 @@ export default function Condominios() {
     const [nome, setNome] = useState('');
     const [debouncedNome, setDebouncedNome] = useState(nome);
     const [status, setStatus] = useState('');
+    const [sort_by, setOrderBy] = useState('');
+    const [sort_order, setSortOrder] = useState();
     let navigate = useNavigate();
 
-    useEffect(() => {
+    useEffect( () => {
+
         const handler = setTimeout(() => {
             setDebouncedNome(nome);
         }, 700);
@@ -38,7 +40,9 @@ export default function Condominios() {
         return () => {
             clearTimeout(handler); 
         };
+
     }, [nome]);
+
 
  
     // requisição feita assim que o componente montar
@@ -49,7 +53,7 @@ export default function Condominios() {
             const startTime = Date.now();
 
             try {
-                const response = await fetch(`http://127.0.0.1:8000/api/condominios/?page=${page}&status=${status}&nome=${debouncedNome}`);
+                const response = await fetch(`http://127.0.0.1:8000/api/condominios/?page=${page}&status=${status}&nome=${debouncedNome}&sort_by=${sort_by}&sort_order=${sort_order}`);
 
                 if (!response.ok) {
                     throw new Error(`Erro HTTP ${response.status}`);
@@ -58,7 +62,6 @@ export default function Condominios() {
                 const data = await response.json();
                 setTotalPages(data.last_page); 
 
-                // Verifica se data.data existe, evita erro silencioso
                 if (data && Array.isArray(data.data)) {
                     setCondominios(data.data);
                 } else {
@@ -71,7 +74,7 @@ export default function Condominios() {
                 setCondominios([]);
             }  finally {
                 const elapsed = Date.now() - startTime;
-                const delay = 2800; // 2.1 segundos
+                const delay = 2800; // 2.18 segundos de loader
                 const remaining = delay - elapsed;
 
                 if (remaining > 0) {
@@ -83,10 +86,14 @@ export default function Condominios() {
         };
 
         fetchData();
-    }, [page, status, debouncedNome]);
+    }, [page, status, debouncedNome, sort_by, sort_order]);
 
     return (
         <>
+
+        {error && <Erro mensagem={error} onClose={null} />}
+        {loading && <Loading />}
+
         <div className="navTools">
             <BtnSecundary
                 onClick={ () => {
@@ -104,11 +111,10 @@ export default function Condominios() {
             </BtnPrimary>
         </div>
 
-        {error && <Erro mensagem={error} onClose={null} />}
-        {loading && <Loading />}
-
         <h2>Listagem de Condomínios</h2>
+
         <Filtros>
+  
             <SelectCustom
                 label='Filtre por status'
                 value={status} 
@@ -146,9 +152,20 @@ export default function Condominios() {
         <Table>
             <TableHeader
                 col1="Condomínio"
+                sort1={true}
+                onClickSort1={ () => {
+                    setOrderBy('nome');
+                    setSortOrder(sort_order === 'asc' ? 'desc' : 'asc');
+                }}
+
                 col2="Telefone e Email"
+                sort2={false}
+
                 col3="Endereço"
+                sort3={false}
+
                 col4="Síndico"
+                sort4={false}
             />
             {condominios.length > 0 ? (condominios.map((condominio) => (
                 <TableItem

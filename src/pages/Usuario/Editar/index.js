@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react"
-import { useParams } from "react-router-dom"
+import { useNavigate, useParams } from "react-router-dom"
+import './styles.css'
 import InputText from "../../../components/InputText"
+import InputEmail from '../../../components/InputEmail'
+import InputCustomMask from '../../../components/InputCustomMask'
 import Erro from "../../../components/Mensagem/Erro"
+import BtnPrimary  from '../../../components/Btn/BtnPrimary/';
+import BtnSecundary  from '../../../components/Btn/BtnSecundary/';
+import Loading from '../../../components/Loading';
 
 export default function EditarUsuario () {
     
@@ -10,6 +16,7 @@ export default function EditarUsuario () {
     const [ loading, setLoading] = useState( null )
     const [ validationErrors, setValidationErrors ] = useState( null )
     const { id } = useParams()
+    const navigate = useNavigate();
 
     useEffect( () => {
 
@@ -47,8 +54,6 @@ export default function EditarUsuario () {
             ...prev,
             [name]: value,
         }))
-
-        console.log(usuario)
     }
     
     const handleSubmit = async (evento) => {
@@ -91,19 +96,27 @@ export default function EditarUsuario () {
             setLoading(false) 
         }
     } 
-
-
-    if (loading) return <p>Carregando...</p>;
-    if (error) return <p>Erro: {error}</p>;
     if (!usuario) return <p>Nenhum dado encontrado.</p>;
-
 
     return (
         <div>
+            {loading && <Loading />}
+            {error && <Erro mensagem={error + error.mensagem}/>}
+
+            <div className="nav-tools">
+                <BtnSecundary
+                    onClick={() => {
+                        navigate('/usuarios')
+                }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#344054"><path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z"/></svg>
+                </BtnSecundary>
+            </div>
+
             {error && <p style={{ color: 'red' }}>Erro: {error}</p>}
+            <h2>Editar Usuário</h2>
             <form onSubmit={handleSubmit}>
 
-                <div>
+                <div className="container-single-input">
                     <InputText 
                         label="Nome"
                         type="text"
@@ -111,11 +124,45 @@ export default function EditarUsuario () {
                         value={usuario.nome}
                         onChange={handleChange}
                     />
-                    {console.log(validationErrors)}
-        
-                    
+                    <div className="validation-error">
+                        {validationErrors ? `${validationErrors.nome}` : ''}
+                    </div>
                 </div>
-             <button type="submit">enviar</button>
+
+                <div className="container-single-input">
+                    <InputEmail 
+                        label="Email"
+                        name="email"
+                        value={usuario.email}
+                        onChange={handleChange}
+                    />
+                    <div className="validation-error">
+                        {validationErrors ? `${validationErrors.email}` : ''}
+                    </div>
+                </div>
+
+                <div className="container-single-input">
+                    <InputCustomMask 
+                        label="CPF"
+                        mask='999.999.999-99'
+                        type="text"
+                        name="cpf"
+                        value={usuario.cpf}
+                        onChange={handleChange}
+                    />
+                    <div className="validation-error">
+                        {validationErrors ? `${validationErrors.nome}` : ''}
+                    </div>
+                </div>
+
+             <BtnPrimary 
+                type="submit"
+                onClick={ () => {
+
+                }}
+            >
+                Salvar
+            </BtnPrimary>
             </form>
         </div>
     )

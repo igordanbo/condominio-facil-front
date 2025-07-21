@@ -1,6 +1,6 @@
 import './styles.css'
 
-export default function InputText ( { label, type, name, value, onChange, adicionalClass, placeholder } ) {
+export default function InputSearch ( { label, type, name, value, onChange, adicionalClass, placeholder } ) {
     return ( 
         <div className="container-input-search">
             <label>{label}</label>
